@@ -17,7 +17,15 @@ Features:
 
 Works on Macs without a notch too: it draws a small pill at the top centre of the main screen.
 
-## Build and install
+## Install
+
+```sh
+brew install tariqp/tap/notchcontrol
+```
+
+Then open NotchControl from /Applications, go to Settings and click *Install hooks* for the agents you use.
+
+## Build from source
 
 Requires macOS 14+ and the Xcode Command Line Tools (`xcode-select --install`).
 
