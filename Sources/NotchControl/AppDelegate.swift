@@ -194,7 +194,8 @@ extension AppDelegate {
         let current = HookInstaller.bridgePath
         func stale(_ url: URL) -> Bool {
             guard let text = try? String(contentsOf: url, encoding: .utf8), text.contains(HookInstaller.marker) else { return false }
-            return !text.contains(current)
+            // The command quotes the path, so match it quoted: "/Applications/…" must not match "~/Applications/…".
+            return !text.contains("\"\(current)\"")
         }
         if stale(HookInstaller.settingsURL) { try? HookInstaller.install(); DebugLog.log("refreshed Claude hooks for \(current)") }
         if stale(CodexHookInstaller.fileURL) { try? CodexHookInstaller.install(); DebugLog.log("refreshed Codex hooks") }
