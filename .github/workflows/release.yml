@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app
+        run: ./build.sh
+      - name: Zip
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ditto -c -k --keepParent build/NotchControl.app "NotchControl-${VERSION}.zip"
+          shasum -a 256 "NotchControl-${VERSION}.zip" > "NotchControl-${VERSION}.zip.sha256"
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            NotchControl-*.zip
+            NotchControl-*.zip.sha256
+          generate_release_notes: true
