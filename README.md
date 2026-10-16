@@ -17,6 +17,8 @@ Features:
 
 Works on Macs without a notch too: it draws a small pill at the top centre of the main screen.
 
+Agent logos (Claude, GitHub Copilot, OpenAI, Gemini, Cursor, OpenCode) come from [Simple Icons](https://simpleicons.org) (CC0).
+
 ## Install
 
 ```sh

@@ -57,13 +57,34 @@ struct CollapsedView: View {
         return agents.headline
     }
 
+    /// Distinct agents with a session, busy ones first, at most three so the text still fits.
+    private var iconSessions: [AgentSession] {
+        var seen = Set<String>()
+        let busyFirst = agents.orderedSessions.sorted { a, b in
+            if a.isBusy != b.isBusy { return a.isBusy }
+            return a.updatedAt > b.updatedAt
+        }
+        return Array(busyFirst.filter { seen.insert($0.agent.lowercased()).inserted }.prefix(3))
+    }
+
+    /// The session whose colour the right-hand working animation takes; nil when nobody is working.
+    private var workingSession: AgentSession? {
+        agents.orderedSessions.first { $0.status == "Working" }
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: 6) {
                 if let p = agents.pending.first {
                     AgentStatusIcon(agent: p.agent, status: "Waiting for approval", size: 14)
-                } else if let s = agents.orderedSessions.first {
-                    AgentStatusIcon(agent: s.agent, status: s.status, size: 14)
+                } else if !agents.orderedSessions.isEmpty {
+                    // One icon per agent that has a session; the busiest one first, the rest tucked behind it.
+                    HStack(spacing: -5) {
+                        ForEach(Array(iconSessions.enumerated()), id: \.element.id) { i, s in
+                            AgentStatusIcon(agent: s.agent, status: s.status, size: 14)
+                                .zIndex(Double(iconSessions.count - i))
+                        }
+                    }
                 } else {
                     Circle().fill(Color.gray).frame(width: 7, height: 7)
                 }
@@ -78,6 +99,10 @@ struct CollapsedView: View {
             if vm.notchSize.width > 0 { Spacer().frame(width: vm.notchSize.width) } else { Spacer(minLength: 8) }
 
             HStack(spacing: 6) {
+                if let s = workingSession {
+                    WorkingIndicator(color: AgentIcon.accent(for: s.agent), height: 12)
+                        .help("\(s.agent.capitalized) is working")
+                }
                 if pomodoro.phase != .idle && pomodoro.phase != .finished {
                     HStack(spacing: 3) {
                         Image(systemName: pomodoro.phase == .work ? "timer" : "cup.and.saucer.fill")
@@ -303,6 +328,9 @@ struct SessionRow: View {
                             .font(.system(size: 10)).opacity(0.55)
                         }
                         Spacer()
+                        if session.status == "Working" {
+                            WorkingIndicator(color: AgentIcon.accent(for: session.agent), bars: 3, height: 9, barWidth: 2)
+                        }
                         Text(session.status).font(.system(size: 10)).opacity(0.6)
                         Text(duration).font(.system(size: 10, design: .monospaced)).opacity(0.4)
                         if session.terminal != nil {

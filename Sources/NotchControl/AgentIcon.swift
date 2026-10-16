@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Vector glyph for a coding agent. Drawn here, not loaded from any other app.
+/// Brand glyph for a coding agent (official marks via Simple Icons; monograms where none exists).
 struct AgentIcon: View {
     let agent: String
     var size: CGFloat = 16
@@ -9,20 +9,19 @@ struct AgentIcon: View {
         Group {
             switch agent.lowercased() {
             case "claude":
-                Starburst(rays: 8)
-                    .fill(Color(red: 0.85, green: 0.47, blue: 0.34))
+                BrandGlyph(path: BrandGlyphs.claude, fill: Color(red: 0.85, green: 0.47, blue: 0.34))
             case "gemini":
-                FourPointStar()
-                    .fill(LinearGradient(colors: [Color(red: 0.31, green: 0.55, blue: 0.98), Color(red: 0.62, green: 0.38, blue: 0.93)],
-                                         startPoint: .topLeading, endPoint: .bottomTrailing))
-            case "copilot":
-                Monogram(text: "Co", background: Color(red: 0.42, green: 0.36, blue: 0.9))
+                BrandGlyph(path: BrandGlyphs.gemini,
+                           fill: LinearGradient(colors: [Color(red: 0.31, green: 0.55, blue: 0.98), Color(red: 0.62, green: 0.38, blue: 0.93)],
+                                                startPoint: .topLeading, endPoint: .bottomTrailing))
+            case "copilot", "githubcopilot":
+                BrandGlyph(path: BrandGlyphs.copilot, fill: Color.white)
             case "codex", "openai":
-                Monogram(text: "Cx", background: Color(white: 0.15), foreground: .white, border: true)
+                BrandGlyph(path: BrandGlyphs.openai, fill: Color.white)
             case "cursor":
-                Image(systemName: "cube.fill").resizable().scaledToFit().foregroundStyle(.white)
+                BrandGlyph(path: BrandGlyphs.cursor, fill: Color.white)
             case "opencode":
-                Monogram(text: ">_", background: Color(white: 0.2), foreground: .green, border: true)
+                BrandGlyph(path: BrandGlyphs.opencode, fill: Color.white)
             case "amp":
                 Monogram(text: "A", background: Color(red: 0.93, green: 0.3, blue: 0.25))
             case "devin":
@@ -147,5 +146,51 @@ struct FourPointStar: Shape {
         p.addQuadCurve(to: CGPoint(x: c.x, y: c.y - r), control: CGPoint(x: c.x - inner, y: c.y - inner))
         p.closeSubpath()
         return p
+    }
+}
+
+extension AgentIcon {
+    /// Brand-ish accent colour for an agent, used by the working indicator so it matches the icon.
+    static func accent(for agent: String) -> Color {
+        switch agent.lowercased() {
+        case "claude": return Color(red: 0.85, green: 0.47, blue: 0.34)
+        case "gemini": return Color(red: 0.45, green: 0.5, blue: 0.97)
+        case "copilot": return Color(red: 0.55, green: 0.5, blue: 0.95)
+        case "codex", "openai": return Color(white: 0.85)
+        case "cursor": return .white
+        case "opencode": return .green
+        case "amp": return Color(red: 0.93, green: 0.3, blue: 0.25)
+        case "devin": return Color(red: 0.2, green: 0.5, blue: 0.95)
+        default: return .green
+        }
+    }
+}
+
+/// Small equaliser-style "working" animation: a few bars bobbing out of phase.
+/// Driven by a timeline so it keeps moving regardless of view updates.
+struct WorkingIndicator: View {
+    var color: Color = .green
+    var bars: Int = 4
+    var height: CGFloat = 12
+    var barWidth: CGFloat = 2.5
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30)) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            HStack(alignment: .center, spacing: barWidth * 0.8) {
+                ForEach(0..<bars, id: \.self) { i in
+                    let phase = Double(i) * 0.9
+                    let wave = (sin(t * 5.5 + phase) + 1) / 2            // 0…1
+                    let h = height * (0.3 + 0.7 * wave)
+                    Capsule()
+                        .fill(color)
+                        .frame(width: barWidth, height: h)
+                        .opacity(0.65 + 0.35 * wave)
+                }
+            }
+            .frame(height: height)
+            .shadow(color: color.opacity(0.6), radius: 3)
+        }
+        .accessibilityLabel("Working")
     }
 }
