@@ -27,6 +27,34 @@ brew install tariqp/tap/notchcontrol
 
 Then open NotchControl from /Applications, go to Settings and click *Install hooks* for the agents you use.
 
+Upgrade later with `brew upgrade notchcontrol`.
+
+### First launch
+
+The app is ad-hoc signed, not notarized. The cask removes the quarantine flag during install, so macOS opens it without the "unidentified developer" dialog. If you downloaded the zip by hand instead, run:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/NotchControl.app
+```
+
+On the first launch macOS asks for a few permissions, one dialog each. Every feature works without the ones you decline; only that tab stays empty.
+
+| Dialog | Used for | If you say no |
+| --- | --- | --- |
+| Calendars | the Calendar tab and the "in N min" heads-up | no events are shown |
+| Notifications | reminder and approval alerts | only the notch and Slack notify you |
+| Automation → Music / Spotify | the Music tab | no now-playing info |
+| Automation → Terminal / iTerm2 | jumping to the tab an agent runs in, and replying from the notch | double-click only brings the app forward |
+| Bluetooth | the connected-devices pill and battery warnings | nothing Bluetooth related is shown |
+
+You can change any of them later in System Settings → Privacy & Security. Because the app is not signed with an Apple Developer certificate, macOS forgets these choices when the app is updated and asks again after `brew upgrade`.
+
+### Release (maintainers)
+
+```sh
+./release.sh 0.1.2   # version from Resources/Info.plist; builds, tags, publishes the GitHub release, updates the tap
+```
+
 ## Build from source
 
 Requires macOS 14+ and the Xcode Command Line Tools (`xcode-select --install`).
@@ -78,6 +106,7 @@ Sources/NotchControl/      the app
 Sources/notchcontrol-bridge/    the hook helper
 Resources/Info.plist     bundle metadata and usage descriptions
 build.sh                 builds and signs the .app (ad hoc)
+release.sh               zips a build, publishes the GitHub release and bumps the Homebrew cask
 ```
 
 ## Not included (yet)
